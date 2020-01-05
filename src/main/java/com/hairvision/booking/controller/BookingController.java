@@ -9,7 +9,10 @@ import org.springframework.web.bind.annotation.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -21,35 +24,43 @@ import static com.hairvision.booking.service.BookingDataService.readBookingFromC
 public class BookingController {
 
     String customerBookingFile = "customer-booking.csv";
+    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     @GetMapping(path = "/searchbooking")
-    public Booking getBookingDetails(@RequestParam String email) {
+    public Booking getBookingDetails(@RequestParam String email) throws ParseException {
 
         Booking bookingInfoForCustomer = null;
+        Date maxDate = dateFormat.parse("1900-01-01 01:01:01");
         List<Booking> bookingsRecords = readBookingFromCsv(customerBookingFile);
         for (Booking booking : bookingsRecords) {
             if (booking.getCustomerEmail().equals(email)) {
                 log.info("Booking for customer " + email + " found as " + booking.getBookingDateTime()
                         + " with type " + booking.getHairCutType());
-                bookingInfoForCustomer = booking;
+                Date bookedDate = dateFormat.parse(booking.getBookingDateTime());
+                if (bookedDate.compareTo(maxDate) > 0) {
+                    bookingInfoForCustomer = booking;
+                    maxDate = bookedDate;
+                }
             }
         }
         return bookingInfoForCustomer;
     }
 
     @PostMapping(path = "/createnewbooking", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public Map<String, String> setBookingDetails(@RequestBody Booking booking) {
+    public Map<String, String> setBookingDetails(@RequestBody Booking booking) throws ParseException {
 
         return saveBookingDetails(booking);
     }
 
-    @PostMapping(path = "/reschedulebooking", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path = "/reschedulebooking", consumes = MediaType.APPLICATION_JSON_VALUE
+            , produces = MediaType.APPLICATION_JSON_VALUE)
     public Map<String, String> rescheduleBookingDetails(@RequestBody Booking booking) {
 
-        return saveBookingDetails(booking);
+        writeData(customerBookingFile, booking);
+        return Collections.singletonMap("response", "Booking rescheduled");
     }
 
-    private Map<String, String> saveBookingDetails(Booking booking) {
+    private Map<String, String> saveBookingDetails(Booking booking) throws ParseException {
         String retStatus = null;
         Booking getAvailableBooking = getBookingDetails(booking.getCustomerEmail());
         if (getAvailableBooking == null) {
@@ -65,12 +76,13 @@ public class BookingController {
 
 
     private void writeData(String customerBookingFile, Booking booking) {
-
+        Date date = new Date();
         try (PrintWriter writer = new PrintWriter(new FileOutputStream(new File(customerBookingFile), true))) {
             String row = booking.getCustomerName() + ','
                     + booking.getCustomerEmail() + ','
                     + booking.getBookingDateTime() + ','
-                    + booking.getHairCutType();
+                    + booking.getHairCutType() + ","
+                    + dateFormat.format(date);
             writer.write(row + System.getProperty("line.separator"));
 
             log.info("Booking Done!");

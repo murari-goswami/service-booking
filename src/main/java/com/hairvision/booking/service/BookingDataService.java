@@ -38,8 +38,9 @@ public class BookingDataService {
         String CustomerEmail = metadata[1];
         String BookingDateTime = metadata[2];
         String HairCutType = metadata[3];
+        String CreateTimestamp = metadata[4];
 
         // create and return book of this metadata
-        return new Booking(CustomerName, CustomerEmail, BookingDateTime, HairCutType);
+        return new Booking(CustomerName, CustomerEmail, BookingDateTime, HairCutType, CreateTimestamp);
     }
 }

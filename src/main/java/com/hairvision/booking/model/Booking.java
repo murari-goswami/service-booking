@@ -12,4 +12,5 @@ public class Booking {
     String CustomerEmail;
     String BookingDateTime;
     String HairCutType;
+    String CreateTimestamp;
 }
