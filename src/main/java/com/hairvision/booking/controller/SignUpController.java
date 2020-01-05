@@ -9,11 +9,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.print.attribute.standard.Media;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static com.hairvision.booking.service.CustomerDataService.readCustomerFromCsv;
 
@@ -24,18 +25,21 @@ public class SignUpController {
 
 
     @PostMapping(path="/", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public Customer createNewCustomer(@RequestBody Customer customer) {
+    public Map<String, String> createNewCustomer(@RequestBody Customer customer) {
         String customerDataFile = "customer-data.csv";
+        String retStatus = null;
         List<Customer> customers = readCustomerFromCsv(customerDataFile);
         for (Customer singleCustomerRec : customers) {
             if (singleCustomerRec.getEmail().equals(customer.getEmail())) {
-                log.info(customer.getEmail() + " is already registered !!!");
+                retStatus = customer.getEmail() + " is already registered !!!";
+                log.info(retStatus);
+                return Collections.singletonMap("response", retStatus);
             }
         }
 
         writeData(customerDataFile, customer);
 
-        return customer;
+        return Collections.singletonMap("response", retStatus);
     }
 
     // write data call internally
