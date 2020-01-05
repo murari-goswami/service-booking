@@ -22,7 +22,7 @@ public class BookingController {
 
     String customerBookingFile = "customer-booking.csv";
 
-    @GetMapping(path = "/")
+    @GetMapping(path = "/searchbooking")
     public Booking getBookingDetails(@RequestParam String email) {
 
         Booking bookingInfoForCustomer = null;
@@ -37,13 +37,24 @@ public class BookingController {
         return bookingInfoForCustomer;
     }
 
-    @PostMapping(path = "/", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path = "/createnewbooking", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public Map<String, String> setBookingDetails(@RequestBody Booking booking) {
+
+        return saveBookingDetails(booking);
+    }
+
+    @PostMapping(path = "/reschedulebooking", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public Map<String, String> rescheduleBookingDetails(@RequestBody Booking booking) {
+
+        return saveBookingDetails(booking);
+    }
+
+    private Map<String, String> saveBookingDetails(Booking booking) {
         String retStatus = null;
         Booking getAvailableBooking = getBookingDetails(booking.getCustomerEmail());
         if (getAvailableBooking == null) {
             writeData(customerBookingFile, booking);
-            retStatus =  "Booking requested accepted !";
+            retStatus = "Booking requested accepted !";
         } else {
             retStatus = "Customer is already having a booking at " + getAvailableBooking.getBookingDateTime()
                     + "for hair cut type " + getAvailableBooking.getHairCutType();
@@ -52,12 +63,13 @@ public class BookingController {
         return Collections.singletonMap("response", retStatus);
     }
 
+
     private void writeData(String customerBookingFile, Booking booking) {
 
         try (PrintWriter writer = new PrintWriter(new FileOutputStream(new File(customerBookingFile), true))) {
             String row = booking.getCustomerName() + ','
                     + booking.getCustomerEmail() + ','
-                    + booking.getBookingDateTime()+ ','
+                    + booking.getBookingDateTime() + ','
                     + booking.getHairCutType();
             writer.write(row + System.getProperty("line.separator"));
 
@@ -66,7 +78,5 @@ public class BookingController {
         } catch (Exception exp) {
             log.info("Could Not Save The Record!");
         }
-
-
     }
 }
