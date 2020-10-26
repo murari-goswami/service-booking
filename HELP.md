@@ -9,9 +9,9 @@ For further reference, please consider the following sections:
 
 {
   "address": "erlangen",
-  "email": "shain1@gmail.com",
-  "name": "shain1",
-  "password": "shain1",
+  "email": "shain10@gmail.com",
+  "name": "shain10",
+  "password": "shain10",
   "phoneNumber": "12345678"
 }
 
